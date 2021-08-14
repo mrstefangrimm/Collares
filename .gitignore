@@ -1,0 +1,9 @@
+﻿################################################################################
+# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
+################################################################################
+
+/Src/.vs/Collares/v16
+/Src/Collares/bin
+/Src/Collares/obj
+/Src/Collares.UnitTest/bin
+/Src/Collares.UnitTest/obj
