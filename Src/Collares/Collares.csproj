@@ -1,7 +1,21 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net5.0</TargetFramework>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <Authors>mrstefangrimm</Authors>
+    <PackageLicenseFile>LICENSE</PackageLicenseFile>
+    <Description>Collections and resources library for REST APIs.</Description>
+    <PackageProjectUrl>https://github.com/mrstefangrimm/Collares</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/mrstefangrimm/Collares</RepositoryUrl>
+    <Version>0.0.1</Version>
+    <Company />
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\..\LICENSE">
+      <Pack>True</Pack>
+      <PackagePath></PackagePath>
+    </None>
+  </ItemGroup>
 
 </Project>

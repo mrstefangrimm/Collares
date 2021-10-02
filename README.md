@@ -7,7 +7,7 @@ What is the project about? Collares is a Web API class library for ASP.NET Core 
 
 
 
-Collares is used in the project [OteaMate](https://github.com/mrstefangrimm/opteamate) which has a open [API](https://opteamate.dynv6.net/swagger/index.html) and is open source. Collares is written in C# and uses .NET 5.0.
+Collares is used in the project [OteaMate](https://github.com/mrstefangrimm/opteamate) which has a open [API](https://opteamate.dynv6.net/swagger/index.html) and is open source. Collares is written in C# and uses .NET Standard 2.0.
 
 
 
