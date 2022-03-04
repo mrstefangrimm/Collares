@@ -54,7 +54,9 @@ Listing2 shows a curl<sup>1</sup> command that requests the shopping list items 
 
 
 
-One reason why it's not so good to return `ShoppinglistItem` is that the client does not have additional information: Is it possible to add items, remove an item, change an item? By using Collares' reponse types, this information is transported to the client together with the `ShoppinglistItem` which is now the payload of the message:
+One reason why it's not so good to return `ShoppinglistItem` is that the client does not have additional information: Is it possible to add items, remove an item, change an item?
+
+By using the Collares reponse types, this information is transported to the client along with the `ShoppinglistItem` which is now the payload of the message:
 
 ```CSharp
 using Collares;
@@ -158,7 +160,7 @@ The example has shown that with just a few additional lines of code, the Web API
 
 | Info - Data Transfer Objects (DTO) and Data Payload Objects  |
 | ------------------------------------------------------------ |
-| DTO are  class  implementations decoupled from your business logic<sup>5</sup>. In my opinion doing this by hand this is a lot of work an expensive to maintain. <br/>Collares uses a pattern also called "Data Payload Objects" (sorry, I don't have a reference for that). The class `ShoppinglistItem` is both the payload on the Web interface and is used in the business logic. |
+| DTO are  class  implementations decoupled from your business logic<sup>5</sup>. In my opinion doing this by hand is a lot of manual work and expensive to maintain. <br/>Collares uses a pattern also called "Data Payload Objects" (sorry, I don't have a reference for that). The class `ShoppinglistItem` is both the payload on the Web interface and is used in the business logic. |
 
 
 
