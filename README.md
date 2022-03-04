@@ -1,239 +1,393 @@
 # Collares
-**Coll**ections **a**nd **res**ources library for REST APIs.
+**Coll**ections **a**nd **res**ources
+
+## What is Collares and what is it good for
+
+Collares is a C# library that turns your ASP.NET service into a RESTful service.
 
 
 
-What is the project about? Collares is a Web API class library for ASP.NET Core to build a restful API with .NET/C#.  This document describes the idea behind it.
+Here's a example to illustrate it. Given an ASP.NET Web service that manages your shopping list. Programmed straight forward and without Collares, The Web service returns `ShoppinglistItem`:
 
+```CSharp
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 
+class ShoppinglistItem {
+  public string Product { get; set; }
+  public decimal Price { get; set; }
+}
 
-Collares is used in the project [OteaMate](https://github.com/mrstefangrimm/opteamate) which has a open [API](https://opteamate.dynv6.net/swagger/index.html) and is open source. Collares is written in C# and uses .NET Standard 2.0.
-
-
-
-Is Collares for you? Collares is for Hobbyist and small projects.
-
-
-
-Motivation, why the project exists? The project started from one single class that defined a typed response type for a REST service. It is not an overwhelming library and is useful for small projects with a separation of domain and API classes.
-
-```C#
-// This is an illustration and not how it is currently implemented
-public class WebApiResponseBase<TDATA> where TDATA : new() {
-  public string Type { get; set; }
-  public TDATA Data { get; set; } = new TDATA();
-  public IDictionary<string, string> Hrefs { get; set; } = new Dictionary<string, string>();
+/// <summary>ASP.NET Web API for a shopping list.</summary>
+[Route("api/[controller]")]
+[ApiController]
+public class ShoppinglistController : ControllerBase {
+  /// <summary>Gets a list of items.</summary>
+  [HttpGet("items")]
+  public IActionResult GetItems() {
+    // Here, the items would be read from the database.
+    var items = new [] { 
+      new ShoppingItem { Product = "apples", Price = 3.49m },
+      new ShoppingItem { Product = "pears",  Price = 2.99m } };
+    // Return the items
+    return Ok(items);
+  }
 }
 ```
 
+Listing1 shows a Web service that uses the class `ShoppinglistItem` as the response type.
 
+A request returns an array of `ShoppinglistItem`.
 
-Features: TBD.
+```bash
+$ curl http://localhost:5000/api/shoppinglist/items | json_pp
+```
 
+```json
+[
+  { "product" : "apples", "price" : 3.49 },
+  { "product" : "pears",  "price" : 2.99 }
+]
+```
 
-
-## Web API Response Types
-
-By definition, the response of a Web API should not change its form. With Collares, the response types 'Collection' and 'Info' have a sealed form whereas the type 'Resource' is extendable.
-
-| Property |                                                      |
-| -------- | ---------------------------------------------------- |
-| Type     | is always either 'Collection', 'Resource' or 'Info'. |
-| HRefs    | is a dictionary of possible actions.                 |
-| Id       | is the unique resource id.                           |
-| Data     | is the payload respectively  a value object.         |
-
-
-
-![Logic-Composite](./Res/Logic-Composite.jpg)
+Listing2 shows a curl<sup>1</sup> command that requests the shopping list items from the service. The response is an array of shopping list items.
 
 
 
+One reason why it's not so good to return `ShoppinglistItem` is that the client does not have additional information: Is it possible to add items, remove an item, change an item? By using Collares' reponse types, this information is transported to the client together with the `ShoppinglistItem` which is now the payload of the message:
+
+```CSharp
+using Collares;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+
+using ShoppingListItemsResponse 
+  = WebApiCollectionResponse<ShoppingItemResponse, ShoppingItem>;
+
+class ShoppinglistItem {
+  public string Product { get; set; }
+  public decimal Price { get; set; }
+}
+class ShoppingItemResponse : WebApiResourceResponse<ShoppingItem> {}
+
+/// <summary>ASP.NET Web API for a shopping list.</summary>
+[Route("api/[controller]")]
+[ApiController]
+public class ShoppinglistController : ControllerBase {
+  /// <summary>Gets a list of items.</summary>
+  [HttpGet("items")]
+  public IActionResult GetItems() {
+    // Here, the items would be read from the database.
+    var items = new[] {
+      new ShoppingItem { Product = "apples", Price = 3.49m },
+      new ShoppingItem { Product = "pears",  Price = 2.99m } };
+
+    // Create the response
+    ShoppingListItemsResponse response = new();
+    response.AddHref(HrefType.Post, $"api/shoppinglist/items");
+    for (int n = 0; n < items.Length; n++) {
+      ShoppingItemResponse itemResponse = new() { Id = n + 1 };
+      itemResponse.Data.CopyFrom(items[n]);
+      itemResponse.AddHref(
+        HrefType.Delete, $"api/shoppinglist/items/{itemResponse.Id}");
+      itemResponse.AddHref(
+        HrefType.Patch, $"api/shoppinglist/items/{itemResponse.Id}");
+      response.Data.Add(itemResponse);
+    }
+    return Ok(response);
+  }
+}
+```
+
+Listing3 shows a Web service that uses `WebApiCollectionResponse` as the response.
+
+A request returns a `WebApiCollectionResponse` .
+
+```bash
+$ curl http://localhost:5000/api/shoppinglist/items | json_pp
+```
+
+```json
+{
+  "type" : "Collection",  
+  "data" : [
+    { 
+      "type" : "Resource",
+      "id" : 1,
+      "data" : {
+        "product" : "apples",
+        "price" : 3.49 },
+      "hrefs" : { 
+        "delete" : "api/shoppinglist/items/1",
+        "patch" : "api/shoppinglist/items/1" }
+    },
+    { 
+      "type" : "Resource",
+      "id" : 2,
+      "data" : {
+        "product" : "pears",
+        "price" : 2.99 },
+      "hrefs" : {
+        "delete" : "api/shoppinglist/items/2",
+        "patch" : "api/shoppinglist/items/2" }}
+   ],
+   "hrefs" : {
+      "post" : "api/shoppinglist/items"
+   },
+}
+```
+
+Listing3 shows a curl<sup>1</sup> command that requests the shopping list items from the service. The response is a list of `ShoppinglistItem` (as the payload in "data") enriched with possible actions for the list and the individual items.
 
 
-Web API Response Types and Data Payload Objects
+
+A client application can extract additional information from the response:
+
+- It's a collection of items
+- The service allows the client to post<sup>2</sup> items to the collection
+- The items in the collection are resources
+- The service allows the client to delete<sup>3</sup> or to patch<sup>4</sup> a item
+
+With this information you can, for example, enable or disable the add button in your Web application.
+
+
+
+The example has shown that with just a few additional lines of code, the Web API response was improved. To keep it short, the example didn't include database access and error handling.
+
+
+
+| Info - Data Transfer Objects (DTO) and Data Payload Objects  |
+| ------------------------------------------------------------ |
+| DTO are  class  implementations decoupled from your business logic<sup>5</sup>. In my opinion doing this by hand this is a lot of work an expensive to maintain. <br/>Collares uses a pattern also called "Data Payload Objects" (sorry, I don't have a reference for that). The class `ShoppinglistItem` is both the payload on the Web interface and is used in the business logic. |
+
+
+
+---
+
+<sup>1</sup> curl is a command-line tool that is useful for manual testing. You get the same result if you copy the URL into the browser's URL field.
+
+<sup>2</sup> post  is not part of the example to keep it short. Post is used to add an item.
+
+```CSharp
+[HttpPost("items/{id}")]
+public IActionResult PostItem(long id, ShoppinglistItem item) {
+ // Here, you would add the item to the database
+}
+```
+
+<sup>3</sup> delete is not part of the example to keep it short.
+
+```CSharp
+[HttpDelete("items/{id}")]
+public IActionResult DeleteItem(long id) {
+ // Here, you would delete the item with the given id from the database
+}
+```
+
+<sup>4</sup> patch is not part of the example to keep it short. Patch is used to modify an item.
+
+```CSharp
+[HttpPatch("items/{id}")]
+public IActionResult PatchEvent(long id, ShoppinglistItem item) {
+  // Here, you would try to locate the item with the given id in the database and then modify it with the item
+}
+```
+<sup>5</sup> Patterns of Enterprise Application Architecture, Martin Fowler, 2003.
+
+
+
+## Collares and REST
+
+One of the principles for a RESTful service is a uniform interface<sup>5</sup>. HATEOAS is another term for this uniform interface. The goal of the uniform interface is that the client need know little about the application it is communicating with.
+
+Collares has the three types "Collection", "Info" and "Resource" with always the same properties. What is dynamic is the payload  (stored in the property "Data") and the number of entries in HRefs.
+
+
+
+ ![Logic-Composite](./Res/Logic-Composite.jpg)
+
+Figure1 shows a class diagram of the three possible Collares response types. This turns the Web API interface a uniform interface.
+
+
+
+Table1 explains the four possible properties. A response type always has the same properties.
+
+| Property | Description                                                  |
+| -------- | ------------------------------------------------------------ |
+| Type     | is always either 'Collection', 'Resource' or 'Info'.         |
+| HRefs    | is a dictionary of possible actions. Predefined are: Self, Get, Post, Put, Patch, Delete. This list is extensible. |
+| Id       | is the unique resource id. Often this is also used as the primary key of the database. |
+| Data     | is the payload respectively the value object. Note that the Id is part of the interface and not part of the payload. |
+
+
+
+---
+<sup>5</sup> REST on Wikipedia or any other source you find on the topic: https://en.wikipedia.org/wiki/Representational_state_transfer
+
+
+
+## Web API response types
+
+The example in the section above showed how to create a Web API response with the two types ` WebApiCollectionResponse`  and ` WebApiResourceResponse`.
+
+In this section an example will be made for all three types - Resource, Collection and Info as we learned.
+
+
+
 
 ### Type Resource Response
 
-A resource has a unique Id. A resource can be directly accessed and patched or deleted.
+A resource has a unique Id. The "Data" property (the payload) is the value object. If the service allows, a resource can be directly accessed, patched or deleted.
 
 #### Example
 
-Return the shopping list with Id "4".
-Note that the Data is not the items collection but a value object describing the shopping list.
+```CSharp
+[HttpGet("items/{id}")]
+public IActionResult GetItem(long id) {
+  // Here, the items would be read from the database.
+  var items = new[] {
+    new ShoppingItem { Product = "apples", Price = 3.49m },
+    new ShoppingItem { Product = "pears",  Price = 2.99m } };
+  // Create the response
+  ShoppingItemResponse response = new() { Id = id };
+  response.Data.CopyFrom(items[id - 1]);
+  // Notification to the application that it can delete or patch this resource
+  response.AddHref(HrefType.Delete, $"api/shoppinglist/items/{response.Id}");
+  response.AddHref(HrefType.Patch, $"api/shoppinglist/items/{response.Id}");
+  return Ok(response);
+}
+```
 
-Query: `GET http://../shoppinglists/4`
-Output:
+Query:
+
+```bash
+$ curl http://localhost:5000/api/shoppinglist/items/2 | json_pp
+```
+
+Response:
 
 ```json
-{ "Type":"Resource",
-  "Id":4,
-  "Data":
-  { "Shopper":"S. Hopper",
-    "CreationTime":"2021-01-03T15:59:57.9366648+01:00"
-  },
-  "Hrefs":{"delete":"/api/shoppinglists/4"},
-  "Items":
-  { "Type":"Collection",
-    "Data":
-    [
-      { "Type":"Resource",
-        "Id":1,
-        "Data":{"Product":"apples","Price":3.49},
-        "Hrefs":{}
-      }, 
-      { "Type":"Resource",
-        "Id":2,
-        "Data":{"Product":"pears","Price":2.99},
-        "Hrefs":{}
-      }
-    ],
-    "Hrefs":{}
-  }  
+{
+  "type" : "Resource",
+  "id" : 2,
+   "data" : {
+     "price" : 2.99,
+     "product" : "pears"
+   },
+   "hrefs" : {
+     "delete" : "api/shoppinglist/items/2",
+     "patch" : "api/shoppinglist/items/2"
+   }
 }
 ```
 
 
 ### Type Collection Response
 
-A collection hasn't an Id. Data is a collection of Resource-Responses.
+A collection doesn't have an Id. The property "Data" (the payload) is always list  of type Resource.
 
 #### Example
 
-Return all the items of the shopping list with Id "4".
+```CSharp
+[HttpGet("items")]
+public IActionResult GetItems() {
+  // Here, the items would be read from the database.
+  var items = new[] {
+    new ShoppingItem { Product = "apples", Price = 3.49m },
+    new ShoppingItem { Product = "pears",  Price = 2.99m } };
+  // Create the response
+  ShoppingListItemsResponse response = new();
+  response.AddHref(HrefType.Post, $"api/shoppinglist/items");
+  for (int n = 0; n < items.Length; n++) {
+    ShoppingItemResponse itemResponse = new() { Id = n + 1 };
+    itemResponse.Data.CopyFrom(items[n]);
+    itemResponse.AddHref(
+      HrefType.Delete, $"api/shoppinglist/items/{itemResponse.Id}");
+    itemResponse.AddHref(
+      HrefType.Patch, $"api/shoppinglist/items/{itemResponse.Id}");
+    response.Data.Add(itemResponse);
+  }
+  return Ok(response);
+}
+```
 
-Query: `GET http://../shoppinglists/4/items`
-Output:
+Query: 
+
+```bash
+$ curl http://localhost:5000/api/shoppinglist/items | json_pp
+```
+
+Response:
 
 ```json
-{ "Type":"Collection",
-  "Data":
-  [
-    { "Type":"Resource",
-      "Id":1,
-      "Data":{"Product":"apples","Price":3.49},
-      "Hrefs":{"delete":"/api/shoppinglists/4/items/1"}
+{
+  "type" : "Collection",  
+  "data" : [
+    { 
+      "type" : "Resource",
+      "id" : 1,
+      "data" : {
+        "product" : "apples",
+        "price" : 3.49 },
+      "hrefs" : { 
+        "delete" : "api/shoppinglist/items/1",
+        "patch" : "api/shoppinglist/items/1" }
     },
-    { "Type":"Resource",
-      "Id":2,
-      "Data":{"Product":"pears","Price":2.99},
-      "Hrefs":{"delete":"/api/shoppinglists/4/items/2"}
-    }
-  ],
-  "Hrefs":{"post":"/api/shoppinglists/4/items"}
+    { 
+      "type" : "Resource",
+      "id" : 2,
+      "data" : {
+        "product" : "pears",
+        "price" : 2.99 },
+      "hrefs" : {
+        "delete" : "api/shoppinglist/items/2",
+        "patch" : "api/shoppinglist/items/2" }
+     }
+   ],
+   "hrefs" : {
+      "post" : "api/shoppinglist/items"
+   }
 }
 ```
 
 ### Type Info Response
 
-An info response hasn't an Id. Data is a value object. The HRef "post" of the info object indicates that items can be added.
+An info response doesn't have an Id.  The "Data" property (the payload) is a value object, but this is optional. The payload could be the number of entries in a collection. This allows the client to first learn about the collection before requesting it.
 
-#### Example 1
+Another use case for "info" is to tell the client whether it's allowed to request or modify a collection without actually requesting the collection.
 
-Return the info with the total price of the shopping list with Id "4".
+#### Example
 
-Query: `GET http://../shoppinglists/4/items/info`
-Output:
+Data is a value object. The HRef "post" of the info object indicates that items can be added. "get" is missing so the client might be not allowed to request the collection and see all the entries.
 
-```json
-{ "Type":"Info",
-  "Data":
-  { "TotalPrice":6.48,
-    "AvgPrice":3.24
-  },
-  "Hrefs":{}
-
+```CSharp
+[HttpGet("items/info")]
+public IActionResult GetItemsInfo() {
+  // Create the response
+  WebApiInfoResponse<object> response = new();
+  response.AddHref(HrefType.Post, $"api/shoppinglist/items");
+  if (false) {
+    response.AddHref(HrefType.Get, $"api/shoppinglist/items");
+  }
+  return Ok(response);
 }
 ```
 
-#### Example 2
+Query:
 
-Return the information if shopping list can be added. 
-The query `GET http://../shoppinglists` would return the whole Database. The solution is an info response that  just returns the information you need:
-
-Query: `GET http://../shoppinglists/info`
-Output:
-
-```json
-{ "Type":"Info",
-  "Data":{},
-  "Hrefs":{"post":"/api/shoppinglists/info"}
-}
+```bash
+$ curl http://localhost:5000/api/shoppinglist/items/info | json_pp
 ```
 
+Response:
 
-
-## How to use in the ApiController
-
-Given a ASP.NET Core Web Application that manages shopping lists.
-
-- `curl GET GET http://../api/shoppinglists | json`
-  Returns all the stored shopping lists in the system (can be thousands).
-- `curl GET GET http://../api/shoppinglists/1 | json`
-  Gets the shopping list with some information about the list and a collection of items on the list.
-- `curl GET GET http://../api/shoppinglists/info | json`
-  Gets information on the controller, namely if adding new shopping lists is supported
-- `curl GET GET http://../api/shoppinglists/4/items/info | json`
-  Gets information on the items on the lists, e.g. the total price.
-
-
-
-```c#
-using Collares;
-
-using ShoppingListsInfoResponse = WebApiInfoResponse<object>;
-using ShoppingListItemsInfoResponse = WebApiInfoResponse<ItemsInfo>;
-
-[Route("api/[controller]")]
-[ApiController]
-public class ShoppingListsController : ControllerBase {
-  [HttpGet("info")]
-  public IActionResult GetShoppingListsInfo() {
-    var response = new ShoppingListsInfoResponse();
-    // PostEvent
-    response.AddHref(HrefType.Post, "api/shoppinglists");
-    return Ok(response);
-  }
-  [HttpGet]
-  public IActionResult GetShoppingLists() {
-    if (authorized) {
-        // ... the point here is that an info response is needed.
-    }
-    return Unauthorized();    
-  }   
-  [HttpGet("{id}")]
-  public IActionResult GetShoppingList(long id) {
-    var dbObj = _context.Events.Find(id);
-    if (dbObj == null) { return NotFound(); }
-    _context.Entry(dbObj).Collection(e => e.Items).Load();
-      
-    var response = new EventResponse() { Id = dbObj.Id };
-    response.Data.CopyFrom(dbObj);
-    foreach (var itemDbObj in dbObj.Items) {
-      var itemResponse = new RegistrationResponse { Id = itemDbObj.Id };
-      response.Data.CopyFrom(dbo);
-      response.Items.Data.Add(itemResponse);
-    }
-
-    var evtDto = CreateEventResponse(evtDbo);
-    return Ok(response);
-  }
-
-  [HttpGet("{id}/items/info")]
-  public async Task<IActionResult> GetShoppingListItemsInfo(long id) {
-    var dbObj = _context.ShoppingLists.Find(id);
-    if (dbObj == null) { return NotFound();
-    _context.Entry(dbObj).Collection(e => e.Items).Load();
-      
-    var response = new ShoppingListItemsInfoResponse();
-    response.Data.TotalPrice = CalculateTotal(dbObj);
-    response.Data.AvgPrice = CalculateAverage(dbObj);
-    if (listIsOpen) {
-      response.AddHref(HrefType.Post, $"api/shoppinglists/{id}/items");
-    }
-    return Ok(response);
-  }
-
+```json
+{
+   "type" : "Info",
+   "data" : {},
+   "hrefs" : {
+      "post" : "api/shoppinglist/items"
+   }
 }
 ```
 
