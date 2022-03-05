@@ -208,7 +208,7 @@ public IActionResult PatchItem(long id, ShoppinglistItem item) {
 
 ## Collares and REST
 
-One of the principles for a RESTful service is a uniform interface<sup>5</sup>. HATEOAS is another term for this uniform interface. The goal of the uniform interface is that the client need know little about the application it is communicating with.
+One of the principles for a RESTful service is a uniform interface<sup>6</sup>. HATEOAS is another term for this uniform interface. The goal of the uniform interface is that the client need know little about the application it is communicating with.
 
 Collares has the three types "Collection", "Info" and "Resource" with always the same properties. What is dynamic is the payload  (stored in the property "Data") and the number of entries in HRefs.
 
@@ -232,7 +232,7 @@ Table1 explains the four possible properties. A response type always has the sam
 
 
 ---
-<sup>5</sup> REST on Wikipedia or any other source you find on the topic: https://en.wikipedia.org/wiki/Representational_state_transfer
+<sup>6</sup> REST on Wikipedia or any other source you find on the topic: https://en.wikipedia.org/wiki/Representational_state_transfer
 
 
 
