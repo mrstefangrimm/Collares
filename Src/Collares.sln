@@ -5,7 +5,9 @@ VisualStudioVersion = 16.0.31515.178
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Collares.UnitTest", "Collares.UnitTest\Collares.UnitTest.csproj", "{FCA616A7-EF14-462C-BE35-0BA79CBF6556}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Collares", "Collares\Collares.csproj", "{9DCD7DDC-DE49-41C7-97E4-554983EF1417}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Collares", "Collares\Collares.csproj", "{9DCD7DDC-DE49-41C7-97E4-554983EF1417}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Collares.WebApiExample", "Collares.WebApiExample\Collares.WebApiExample.csproj", "{0B45B8C9-5BD9-480B-8915-98C631A039FB}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,6 +23,10 @@ Global
 		{9DCD7DDC-DE49-41C7-97E4-554983EF1417}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9DCD7DDC-DE49-41C7-97E4-554983EF1417}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9DCD7DDC-DE49-41C7-97E4-554983EF1417}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0B45B8C9-5BD9-480B-8915-98C631A039FB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0B45B8C9-5BD9-480B-8915-98C631A039FB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0B45B8C9-5BD9-480B-8915-98C631A039FB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0B45B8C9-5BD9-480B-8915-98C631A039FB}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

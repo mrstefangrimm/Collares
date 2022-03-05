@@ -2,8 +2,11 @@
 # This .gitignore file was automatically created by Microsoft(R) Visual Studio.
 ################################################################################
 
-/Src/.vs/Collares/v16
+/Src/.vs
 /Src/Collares/bin
 /Src/Collares/obj
 /Src/Collares.UnitTest/bin
 /Src/Collares.UnitTest/obj
+/Src/Collares.WebApiExample/bin
+/Src/Collares.WebApiExample/obj
+/.vs
