@@ -7,7 +7,15 @@ Collares is a C# library that turns your ASP.NET service into a RESTful service.
 
 
 
-Here's a example to illustrate it. Given an ASP.NET Web service that manages your shopping list. Programmed straight forward and without Collares, The Web service returns `ShoppinglistItem`:
+Here's a example to illustrate it. Given an ASP.NET Web service that manages your shopping list. Programmed straight forward and without Collares, The Web service returns `ShoppinglistItem`.
+
+
+
+| Info - Source Code on GitHub                                 |
+| ------------------------------------------------------------ |
+| The source code for the examples is on [GitHub (Src/Collares.WebApiExample)](https://github.com/mrstefangrimm/Collares) if you prefer to study the examples in Visual Studio. |
+
+
 
 ```CSharp
 using Microsoft.AspNetCore.Http;
@@ -23,12 +31,12 @@ class ShoppinglistItem {
 [ApiController]
 public class ShoppinglistController : ControllerBase {
   /// <summary>Gets a list of items.</summary>
-  [HttpGet("items")]
-  public IActionResult GetItems() {
+  [HttpGet("rawitems")]
+  public IActionResult GetRawItems() {
     // Here, the items would be read from the database.
     var items = new [] { 
-      new ShoppingItem { Product = "apples", Price = 3.49m },
-      new ShoppingItem { Product = "pears",  Price = 2.99m } };
+      new ShoppinglistItem { Product = "apples", Price = 3.49m },
+      new ShoppinglistItem { Product = "pears",  Price = 2.99m } };
     // Return the items
     return Ok(items);
   }
@@ -40,7 +48,7 @@ Listing1 shows a Web service that uses the class `ShoppinglistItem` as the respo
 A request returns an array of `ShoppinglistItem`.
 
 ```bash
-$ curl http://localhost:5000/api/shoppinglist/items | json_pp
+$ curl http://localhost:5000/api/shoppinglist/rawitems | json_pp
 ```
 
 ```json
@@ -56,21 +64,21 @@ Listing2 shows a curl<sup>1</sup> command that requests the shopping list items 
 
 One reason why it's not so good to return `ShoppinglistItem` is that the client does not have additional information: Is it possible to add items, remove an item, change an item?
 
-By using the Collares reponse types, this information is transported to the client along with the `ShoppinglistItem` which is now the payload of the message:
+By using the Collares response types, this information is transported to the client along with the `ShoppinglistItem` which is now the payload of the message.
 
 ```CSharp
 using Collares;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
-using ShoppingListItemsResponse 
-  = WebApiCollectionResponse<ShoppingItemResponse, ShoppingItem>;
+using ShoppinglistItemsResponse 
+  = WebApiCollectionResponse<ShoppinglistItemResponse, ShoppinglistItem>;
 
 class ShoppinglistItem {
   public string Product { get; set; }
   public decimal Price { get; set; }
 }
-class ShoppingItemResponse : WebApiResourceResponse<ShoppingItem> {}
+class ShoppinglistItemResponse : WebApiResourceResponse<ShoppinglistItem> {}
 
 /// <summary>ASP.NET Web API for a shopping list.</summary>
 [Route("api/[controller]")]
@@ -81,14 +89,14 @@ public class ShoppinglistController : ControllerBase {
   public IActionResult GetItems() {
     // Here, the items would be read from the database.
     var items = new[] {
-      new ShoppingItem { Product = "apples", Price = 3.49m },
-      new ShoppingItem { Product = "pears",  Price = 2.99m } };
+      new ShoppinglistItem { Product = "apples", Price = 3.49m },
+      new ShoppinglistItem { Product = "pears",  Price = 2.99m } };
 
     // Create the response
-    ShoppingListItemsResponse response = new();
+    ShoppinglistItemsResponse response = new();
     response.AddHref(HrefType.Post, $"api/shoppinglist/items");
     for (int n = 0; n < items.Length; n++) {
-      ShoppingItemResponse itemResponse = new() { Id = n + 1 };
+      ShoppinglistItemResponse itemResponse = new() { Id = n + 1 };
       itemResponse.Data.CopyFrom(items[n]);
       itemResponse.AddHref(
         HrefType.Delete, $"api/shoppinglist/items/{itemResponse.Id}");
@@ -190,7 +198,7 @@ public IActionResult DeleteItem(long id) {
 
 ```CSharp
 [HttpPatch("items/{id}")]
-public IActionResult PatchEvent(long id, ShoppinglistItem item) {
+public IActionResult PatchItem(long id, ShoppinglistItem item) {
   // Here, you would try to locate the item with the given id in the database and then modify it with the item
 }
 ```
@@ -248,10 +256,10 @@ A resource has a unique Id. The "Data" property (the payload) is the value objec
 public IActionResult GetItem(long id) {
   // Here, the items would be read from the database.
   var items = new[] {
-    new ShoppingItem { Product = "apples", Price = 3.49m },
-    new ShoppingItem { Product = "pears",  Price = 2.99m } };
+    new ShoppinglistItem { Product = "apples", Price = 3.49m },
+    new ShoppinglistItem { Product = "pears",  Price = 2.99m } };
   // Create the response
-  ShoppingItemResponse response = new() { Id = id };
+  ShoppinglistItemResponse response = new() { Id = id };
   response.Data.CopyFrom(items[id - 1]);
   // Notification to the application that it can delete or patch this resource
   response.AddHref(HrefType.Delete, $"api/shoppinglist/items/{response.Id}");
@@ -295,13 +303,13 @@ A collection doesn't have an Id. The property "Data" (the payload) is always lis
 public IActionResult GetItems() {
   // Here, the items would be read from the database.
   var items = new[] {
-    new ShoppingItem { Product = "apples", Price = 3.49m },
-    new ShoppingItem { Product = "pears",  Price = 2.99m } };
+    new ShoppinglistItem { Product = "apples", Price = 3.49m },
+    new ShoppinglistItem { Product = "pears",  Price = 2.99m } };
   // Create the response
-  ShoppingListItemsResponse response = new();
+  ShoppinglistItemsResponse response = new();
   response.AddHref(HrefType.Post, $"api/shoppinglist/items");
   for (int n = 0; n < items.Length; n++) {
-    ShoppingItemResponse itemResponse = new() { Id = n + 1 };
+    ShoppinglistItemResponse itemResponse = new() { Id = n + 1 };
     itemResponse.Data.CopyFrom(items[n]);
     itemResponse.AddHref(
       HrefType.Delete, $"api/shoppinglist/items/{itemResponse.Id}");
