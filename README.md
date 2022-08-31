@@ -13,7 +13,7 @@ Here's a example to illustrate it. Given an ASP.NET Web service that manages you
 
 | Info - Source Code on GitHub                                 |
 | ------------------------------------------------------------ |
-| The source code for the examples is on [GitHub (Src/Collares.WebApiExample)](https://github.com/mrstefangrimm/Collares) if you prefer to study the examples in Visual Studio. |
+| The source code for the examples is on [GitHub (Src/Collares.WebApiExample)](https://github.com/mrstefangrimm/Collares/tree/main/Src/Collares.WebApiExample) if you prefer to study the examples in Visual Studio. |
 
 
 
