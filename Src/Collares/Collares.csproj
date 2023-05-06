@@ -4,10 +4,11 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <Authors>mrstefangrimm</Authors>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
     <Description>Collections and resources library for REST APIs.</Description>
     <PackageProjectUrl>https://github.com/mrstefangrimm/Collares</PackageProjectUrl>
     <RepositoryUrl>https://github.com/mrstefangrimm/Collares</RepositoryUrl>
-    <Version>0.0.1</Version>
+    <Version>0.0.2</Version>
     <Company />
   </PropertyGroup>
 
@@ -16,6 +17,12 @@
       <Pack>True</Pack>
       <PackagePath></PackagePath>
     </None>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\README.md">
+    <Pack>True</Pack>
+    <PackagePath></PackagePath>
+  </None>
   </ItemGroup>
 
 </Project>
