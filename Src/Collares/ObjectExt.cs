@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2020 Stefan Grimm. All rights reserved.
+﻿// Copyright (c) 2020-2023 Stefan Grimm. All rights reserved.
 // Licensed under the GPL. See LICENSE file in the project root for full license information.
 //
 using System.Linq;
@@ -13,7 +13,7 @@ namespace Collares {
       PropertyInfo[] destFields = destination.GetType().GetProperties(BindingFlags.Instance | BindingFlags.Public | BindingFlags.SetProperty);
 
       foreach (var property in srcFields) {
-        var dest = destFields.FirstOrDefault(x => x.Name == property.Name);
+        var dest = destFields.FirstOrDefault(x => x.Name == property.Name && x.PropertyType == property.PropertyType);
         if (dest != null && dest.CanWrite) {
           dest.SetValue(destination, property.GetValue(source, null), null);
         }
