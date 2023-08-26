@@ -1,3 +1,5 @@
+[![.NET](https://github.com/mrstefangrimm/Collares/actions/workflows/dotnet.yml/badge.svg)](https://github.com/mrstefangrimm/Collares/actions/workflows/dotnet.yml)
+
 # Collares
 **Coll**ections **a**nd **res**ources
 
